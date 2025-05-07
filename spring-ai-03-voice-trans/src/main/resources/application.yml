@@ -4,4 +4,4 @@ spring:
 
 
 qwen:
-  api-key: sk-cc5e075642fc481cac5608e905d1d48a
+  api-key: sk-your-api-key
