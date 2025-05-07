@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI 聊天助手</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 添加Markdown解析库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 代码高亮 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .chat-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            background-color: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f9fafc;
+        }
+
+        .chat-input {
+            padding: 16px;
+            border-top: 1px solid #eaeef5;
+            background-color: white;
+            display: flex;
+            align-items: center;
+        }
+
+        #message {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #dae1ec;
+            border-radius: 8px;
+            outline: none;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        #message:focus {
+            border-color: #2563eb;
+        }
+
+        #send {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-left: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        #send:hover {
+            background-color: #1d4ed8;
+        }
+
+        #send:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s;
+        }
+
+        .user-message {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .ai-message .message-content {
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px 12px 12px 0;
+            overflow: hidden;
+        }
+
+        .user-message .message-content {
+            background-color: #2563eb;
+            color: white;
+            border-radius: 12px 12px 0 12px;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px 12px 12px 0;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #2563eb;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+            opacity: 0.7;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        /* Markdown渲染样式 */
+        .ai-message .message-content pre {
+            background-color: #f8f9fc;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            overflow-x: auto;
+        }
+
+        .ai-message .message-content code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            background-color: #f1f5f9;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .ai-message .message-content pre > code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        .ai-message .message-content p {
+            margin: 8px 0;
+        }
+
+        .ai-message .message-content ul,
+        .ai-message .message-content ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .ai-message .message-content blockquote {
+            border-left: 4px solid #e2e8f0;
+            padding-left: 12px;
+            margin-left: 0;
+            color: #64748b;
+        }
+
+        .ai-message .message-content img {
+            max-width: 100%;
+            border-radius: 6px;
+        }
+
+        .ai-message .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 12px 0;
+        }
+
+        .ai-message .message-content th,
+        .ai-message .message-content td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .ai-message .message-content th {
+            background-color: #f8fafc;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes typing {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                height: calc(100vh - 40px);
+            }
+
+            .chat-header h1 {
+                font-size: 16px;
+            }
+
+            .message-content {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>AI 聊天助手</h1>
+            <div class="status-indicator">
+                <div id="status-dot" class="status-dot" style="background-color: #f97316;"></div>
+                <span id="status">连接中...</span>
+            </div>
+        </div>
+
+        <div id="chat-messages" class="chat-messages"></div>
+
+        <div class="chat-input">
+            <input id="message" type="text" placeholder="输入你的问题..." autocomplete="off">
+            <button id="send" disabled>发送</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = new WebSocket("ws://localhost:8080/ws/chat");
+        const chatMessages = document.getElementById('chat-messages');
+        const statusText = document.getElementById('status');
+        const statusDot = document.getElementById('status-dot');
+        const sendButton = document.getElementById('send');
+        const messageInput = document.getElementById('message');
+
+        let currentResponse = '';
+        let isFirstChunk = true;
+
+        let aiMessageDiv = null;
+        let aiMessageContent = null;
+
+        // 配置marked选项
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, {language: lang}).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true
+        });
+
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+
+            // 用户消息保持纯文本，AI消息渲染为Markdown
+            if (isUser) {
+                messageContent.textContent = text;
+            } else {
+                messageContent.innerHTML = marked.parse(text);
+            }
+
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'message ai-message';
+            indicator.id = 'typing-indicator';
+
+            const content = document.createElement('div');
+            content.className = 'typing-indicator';
+
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                content.appendChild(dot);
+            }
+
+            indicator.appendChild(content);
+            chatMessages.appendChild(indicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                chatMessages.removeChild(indicator);
+            }
+        }
+
+        socket.onopen = function(e) {
+            statusText.textContent = "已连接";
+            statusDot.style.backgroundColor = "#10b981";
+            sendButton.disabled = false;
+        };
+
+        socket.onclose = function(e) {
+            statusText.textContent = "连接断开";
+            statusDot.style.backgroundColor = "#ef4444";
+            sendButton.disabled = true;
+        };
+
+        socket.onerror = function(e) {
+            statusText.textContent = "连接错误";
+            statusDot.style.backgroundColor = "#ef4444";
+            sendButton.disabled = true;
+            console.error("WebSocket 错误:", e);
+        };
+
+        socket.onmessage = function(e) {
+            if (e.data === "[DONE]") {
+                isFirstChunk = true;
+                return;
+            }
+
+            if (isFirstChunk) {
+                // 移除加载指示器
+                removeTypingIndicator();
+
+                // 创建新的消息元素
+                aiMessageDiv = document.createElement('div');
+                aiMessageDiv.className = 'message ai-message';
+
+                aiMessageContent = document.createElement('div');
+                aiMessageContent.className = 'message-content';
+                aiMessageContent.innerHTML = '';
+                currentResponse = '';
+
+                aiMessageDiv.appendChild(aiMessageContent);
+                chatMessages.appendChild(aiMessageDiv);
+                isFirstChunk = false;
+            }
+
+            // 累加当前响应
+            currentResponse += e.data;
+
+            // 实时渲染为Markdown
+            aiMessageContent.innerHTML = marked.parse(currentResponse);
+
+            // 应用代码高亮
+            aiMessageContent.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || socket.readyState !== WebSocket.OPEN) return;
+
+            addMessage(message, true);
+            socket.send(message);
+            messageInput.value = '';
+            currentResponse = '';
+            isFirstChunk = true;
+
+            // 发送消息后显示加载指示器
+            showTypingIndicator();
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 输入框获取焦点
+        messageInput.focus();
+    </script>
+</body>
+</html>

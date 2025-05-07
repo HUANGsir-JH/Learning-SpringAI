@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: spring-ai-01-chat
+  profiles:
+    active: deepseek
+
+
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: deepseek
+  ai:
+    openai:
+      api-key: sk-9ec1c59f817d4838936d2e627d5e5b86
+      base-url: https://api.deepseek.com
+      chat:
+        options:
+          model: deepseek-chat
+      embedding:
+        enabled: false
+
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: qwen
+  ai:
+    openai:
+      api-key: sk-cc5e075642fc481cac5608e905d1d48a
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      chat:
+        options:
+          model: qwen-vl-max-latest
+      embedding:
+        enabled: false

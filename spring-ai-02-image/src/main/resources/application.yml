@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: spring-ai-02-image
+
+  ai:
+    zhipuai:
+      base-url: https://open.bigmodel.cn/api/paas
+      api-key: 2b958fdbe2d74b82a5ffe31fd7b7d78b.GYXB1H0191Qm1Wzx
+      image:
+        options:
+          model: cogview-4-250304
+
+
