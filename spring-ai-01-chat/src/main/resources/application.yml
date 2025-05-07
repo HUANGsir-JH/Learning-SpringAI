@@ -14,7 +14,7 @@ spring:
       on-profile: deepseek
   ai:
     openai:
-      api-key: sk-9ec1c59f817d4838936d2e627d5e5b86
+      api-key: sk-your-api-key
       base-url: https://api.deepseek.com
       chat:
         options:
@@ -31,7 +31,7 @@ spring:
       on-profile: qwen
   ai:
     openai:
-      api-key: sk-cc5e075642fc481cac5608e905d1d48a
+      api-key: sk-your-api-key
       base-url: https://dashscope.aliyuncs.com/compatible-mode
       chat:
         options:
